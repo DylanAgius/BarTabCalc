@@ -20,4 +20,6 @@ You must select some information about the party you are having. This includes:
 * Number of hours the event will be going for
 * Number of drinks and the corresponding price per drink for both men and women.
 
+## Usage
+This code has been developed to be used with Marimo, allowing a seamless deployable app which you can use. In addition, a raw version is provided if you would like to use this for something else.
 
