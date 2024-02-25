@@ -15,7 +15,7 @@ app = marimo.App()
 
 @app.cell
 def __(mo):
-    mo.md("# Bar Tab Calculator")
+    mo.md("# Bar Tab Calculator 🍺")
     return
 
 
@@ -44,7 +44,7 @@ def __(mo):
 
     mo.ui.tabs(
         {
-            "🧙‍♀ Your Guest Information": settings,
+            "Your Guest Information": settings,
           
         }
     )
@@ -78,8 +78,8 @@ def __(numguests, percentdrive, percentfemale, numhours,np, plt, stats, random):
     # Initialize variables for the number of guests, the percentage of guests who drive,
     # the percentage of females attending, number of hours of the event
     num_guests = numguests.value
-    percent_drive = float(percentdrive.value/100)
-    percent_female= float(percentfemale.value/100)
+    percent_drive = float(percentdrive.value)/100
+    percent_female= float(percentfemale.value)/100
     num_hours=numhours.value
     
     #drinks prices for each gender
