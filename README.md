@@ -8,9 +8,10 @@ The drinks per hour for each men and women are determined by sampling normal dis
 |Men| 2    | (5-0)/4 |
 |Women| 1  | (3-0)/4 |
 
-For those who are driving, the drink rate is different.  This is 2 in the first hour for men, and then 1 in each subsequent hour. For females, it is 1 per hour.
+For those who are driving, the drink rate is different.  This is 1 in the first hour, and then 1 in each subsequent hour.
 
-Additionally, the drink rate decays with hours. This approach assumes that initially guests will be drinking faster but as the event goes on, the drink rate will slow.
+
+Additionally, the drink rate decays with hours (using a decay rate of 0.4). This approach assumes that initially guests will be drinking faster but as the event goes on, the drink rate will slow.
 
 ## Details you must provide
 You must select some information about the party you are having. This includes:
