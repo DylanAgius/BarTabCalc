@@ -49,54 +49,69 @@ def formdist(event_info,XX_data,XY_data):
     XX_data['Drinks_per_hour_dist']=XX; XY_data['Drinks_per_hour_dist']=XY
     return XX_data,XY_data
 
-def randomsample(drinkprice,XX_nondrive, XY_nondrive,num_hours):
+def randomsample(event_info,XX_data,XY_data):
     """
     Creates arrays using random numbers to samplefrom the 'drink per hour array' in formdist()
     and the drinkprice array
     """
+    #extract event info
+    drinkprice=np.array(event_info['drinkprice'])
+    num_hours=int(event_info['num_hours'].dropna().item())
+    
+    #extract XX and XY data
+    XX_nondrive=int(XX_data['nondrivers'].dropna().item())
+    XY_nondrive=int(XY_data['nondrivers'].dropna().item())
+    
     #make an random selection array for drink selection and drinks per hour from the drinkprice array
-    female_drink_selection=np.random.randint(np.size(drinkprice),size=(XX_nondrive,num_hours))
-    male_drink_selection=np.random.randint(np.size(drinkprice),size=(XY_nondrive,num_hours))
+    XX_drink_select=pd.DataFrame({'female_drink_selection':np.random.randint(np.size(drinkprice),size=(XX_nondrive,num_hours)).flatten('F')})
+    XX_data=pd.concat([XX_data,XX_drink_select],axis=1)
     
+    XY_drink_select=pd.DataFrame({'male_drink_selection':np.random.randint(np.size(drinkprice),size=(XY_nondrive,num_hours)).flatten('F')})
+    XY_data=pd.concat([XY_data,XY_drink_select],axis=1)
    
-    #create an array used to sample from the distributions formed by formdist()
-    selectionsfemale=np.random.randint(1000,size=(XX_nondrive,num_hours))
-    selectionsmale=np.random.randint(1000,size=(XY_nondrive,num_hours))
     
-    return female_drink_selection,male_drink_selection, selectionsfemale,selectionsmale
+    #create an array used to sample from the distributions formed by formdist()
+    XX_drink_per_hour=pd.DataFrame({'female_drinks_per_hour_index':np.random.randint(1000,size=(XX_nondrive,num_hours)).flatten('F')})
+    XX_data=pd.concat([XX_data,XX_drink_per_hour],axis=1)
+                                    
+    XY_drink_per_hour=pd.DataFrame({'male_drinks_per_hour_index':np.random.randint(1000,size=(XY_nondrive,num_hours)).flatten('F')})
+    XY_data=pd.concat([XY_data,XY_drink_per_hour],axis=1)
+    return XX_data,XY_data
 
 def driveorno(event_info,XX_data,XY_data):
     """
     Calculate the number of drivers and non drivers then split into genders
     """
+    # extract event info
     num_guests=event_info['num_guests'].dropna().item()
     percent_drive=event_info['percent_drive'].dropna().item()
     percent_female=event_info['percent_female'].dropna().item()
+    
     # Calculate the number of guests who do not drive
     num_drivers=int(num_guests*percent_drive)
     num_nondrivers=num_guests-num_drivers
     
     
     #split this into male and female
-    XX_nondrive=int(num_nondrivers*percent_female)
-    XY_nondrive=num_nondrivers-XX_nondrive
+    XX_nondrive=pd.DataFrame({'nondrivers':[int(num_nondrivers*percent_female)]})
+    XY_nondrive=pd.DataFrame({'nondrivers':[int(num_nondrivers-int(num_nondrivers*percent_female))]})
     
-    XX_drive=int(num_drivers*percent_drive)
-    XY_drive=num_drivers-XX_drive
+    XX_drive=pd.DataFrame({'drivers':[int(num_drivers*percent_drive)]})
+    XY_drive=pd.DataFrame({'drivers':[int(num_drivers-num_drivers*percent_drive)]})
     
-    XX_data['drivers']=[XX_drive]
-    XX_data['nondrivers']=XX_nondrive
-    
-    XY_data['drivers']=XY_drive
-    XY_data['nondrivers']=XY_nondrive
+    XX_data = pd.concat([XX_data, XX_nondrive], axis=1);  XX_data = pd.concat([XX_data, XX_drive], axis=1)
+    XY_data = pd.concat([XY_data,XY_nondrive],axis=1);  XY_data = pd.concat([XY_data,XY_drive],axis=1)
     
     return XX_data,XY_data
 
-def timearrays(XX_drive,XY_drive,num_hours,XX_selections,XY_selections):
+def timearrays(event_info,XX_data,XY_data):
     """
     Create time arrays to allow for exponential decay
     """
-   
+    num_hours=int(event_info['num_hours'].dropna().item())
+    
+    
+    
     #creating a time array for drivers. Note: 2 arrays required for different numbers of females and males
     XX_t_drive=np.array(([np.arange(0,num_hours)]*XX_drive))
     XY_t_drive=np.array(([np.arange(0,num_hours)]*XY_drive))
@@ -139,15 +154,6 @@ def hourlydrinks(XY_t_drink,XX_t_drink,XX_t_drive,XY_t_drive,XX,XY,XY_selections
 
 def drinkcalc():
     
-    # Initialize variables for the number of guests, the percentage of guests who drive,
-    # the percentage of females attending, number of hours of the event
-    # num_guests = 34 #number of guests attending
-    # percent_drive = 0.7 #fraction driving
-    # percent_female= 0.7 #fraction female
-    # num_hours=2  #number hours for the event (note: must be in multiples of 1 hour)
-    # drinkprice=np.array([6,7,8.50,7,15,12]) #drink prices
-    # weekday='yes' #specify weekend or weekday event. This alters the drinks per hour for each distribution
-
     data= {'num_guests': [34], #number of guests attending
        'percent_drive': [0.7], #fraction driving
        'percent_female': [0.7], #fraction female
@@ -167,10 +173,10 @@ def drinkcalc():
     XX_data,XY_data=driveorno(event_info,XX_data,XY_data)
     
     #create arrays of random values to be used in array sampling
-    XX_drink_select,XY_drink_select, XX_selections,XY_selections=randomsample(drinkprice,XX_nondrive, XY_nondrive,num_hours)
+    XX_data,XY_data=randomsample(event_info,XX_data,XY_data)
   
     #create time array for decay of drinking rate as hours progress
-    XX_t_drive,XY_t_drive,XX_t_drink,XY_t_drink=timearrays(XX_drive,XY_drive,num_hours,XX_selections,XY_selections)
+    XX_t_drive,XY_t_drive,XX_t_drink,XY_t_drink=timearrays(event_info,XX_data,XY_data)
    
     #calculate hourly drinks for drivers and drinkers including rate decay
     hourlydrinksmale,hourlydrinksfemale,hourlydrinksdrivefemale,hourlydrinksdrivemen=hourlydrinks(XY_t_drink,XX_t_drink,XX_t_drive,XY_t_drive,XX,XY,XY_selections,XX_selections,XY_drive,num_hours,XX_drive)
