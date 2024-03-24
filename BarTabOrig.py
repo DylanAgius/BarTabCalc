@@ -109,31 +109,49 @@ def timearrays(event_info,XX_data,XY_data):
     Create time arrays to allow for exponential decay
     """
     num_hours=int(event_info['num_hours'].dropna().item())
+    XX_drive=int(XX_data['drivers'].dropna())
+    XY_drive=int(XY_data['drivers'].dropna())
     
-    
+    XX_selections=XX_data['female_drink_selection'].dropna()
+    XY_selections=XY_data['male_drink_selection'].dropna()
     
     #creating a time array for drivers. Note: 2 arrays required for different numbers of females and males
-    XX_t_drive=np.array(([np.arange(0,num_hours)]*XX_drive))
-    XY_t_drive=np.array(([np.arange(0,num_hours)]*XY_drive))
+    XX_t_drive=pd.DataFrame({'drivers_time':np.array(([np.arange(0,num_hours)]*XX_drive)).flatten('F')})
+    XY_t_drive=pd.DataFrame({'drivers_time':np.array(([np.arange(0,num_hours)]*XY_drive)).flatten('F')})
     
-    
+    #add to total array
+    XX_data = pd.concat([XX_data, XX_t_drive], axis=1)
+    XY_data = pd.concat([XY_data, XY_t_drive], axis=1)
     
     #creating a time array for drinkers.  Note: 2 arrays required for different numbers of females and males
-    XX_t_drink=np.array(([np.arange(0,num_hours)]*np.size(XX_selections,axis=0)))
-    XY_t_drink=np.array(([np.arange(0,num_hours)]*np.size(XY_selections,axis=0)))
+    XX_t_drink=pd.DataFrame({'drinkers_time':np.array(([np.arange(0,num_hours)]*int(np.size(XX_selections,axis=0)/num_hours))).flatten('F')})
+    XY_t_drink=pd.DataFrame({'drinkers_time':np.array(([np.arange(0,num_hours)]*int(np.size(XY_selections,axis=0)/num_hours))).flatten('F')})
     
-    return XX_t_drive,XY_t_drive,XX_t_drink,XY_t_drink
+    #add to total array
+    XX_data = pd.concat([XX_data, XX_t_drink], axis=1)
+    XY_data = pd.concat([XY_data, XY_t_drink], axis=1)
     
-def hourlydrinks(XY_t_drink,XX_t_drink,XX_t_drive,XY_t_drive,XX,XY,XY_selections,XX_selections,XY_drive,num_hours,XX_drive):
+    return XX_data,XY_data
+    
+def hourlydrinks(event_info,XX_data,XY_data):
     """
     Add a decay to the number of drinks per hour.
     This attempts to recognise that people will slow their drinking as the event
     progresses
     """
+    # Extract data from arrays
+    XX_t_drink=XX_data['drinkers_time'].dropna()
+    XY_t_drink=XY_data['drinkers_time'].dropna()
+    
+    XX=XX_data['Drinks_per_hour_dist'].dropna()
+    XY=XY_data['Drinks_per_hour_dist'].dropna()
+    
+    XX_selections=XX_data['female_drink_selection'].dropna()
+    XY_selections=XY_data['male_drink_selection'].dropna()
 
     #Use randomly selected drinks per hour to extract the hourly drinks for males and females
-    hourlydrinksmale=np.exp(-0.4*XY_t_drink.flatten('F'))*XY[XY_selections].flatten('F')
-    hourlydrinksfemale=np.exp(-0.4*XX_t_drink.flatten('F'))*XX[XX_selections].flatten('F')
+    hourlydrinksmale=np.exp(-0.4*XY_t_drink)*np.array(XY[XY_selections])
+    hourlydrinksfemale=np.exp(-0.4*XX_t_drink)*np.array(XX[XX_selections])
     
   
      
@@ -150,7 +168,7 @@ def hourlydrinks(XY_t_drink,XX_t_drink,XX_t_drive,XY_t_drive,XX,XY,XY_selections
     hourlydrinksdrivefemale=np.exp(-0.4*XX_t_drive.flatten('F'))*hourlydrinksdrivefemale.flatten('F')
     hourlydrinksdrivemen=np.exp(-0.4*XY_t_drive.flatten('F'))*hourlydrinksdrivemen.flatten('F')
     
-    return   hourlydrinksmale,hourlydrinksfemale,hourlydrinksdrivefemale,hourlydrinksdrivemen
+    return   XX_data,XY_data
 
 def drinkcalc():
     
@@ -176,10 +194,10 @@ def drinkcalc():
     XX_data,XY_data=randomsample(event_info,XX_data,XY_data)
   
     #create time array for decay of drinking rate as hours progress
-    XX_t_drive,XY_t_drive,XX_t_drink,XY_t_drink=timearrays(event_info,XX_data,XY_data)
+    XX_data,XY_data=timearrays(event_info,XX_data,XY_data)
    
     #calculate hourly drinks for drivers and drinkers including rate decay
-    hourlydrinksmale,hourlydrinksfemale,hourlydrinksdrivefemale,hourlydrinksdrivemen=hourlydrinks(XY_t_drink,XX_t_drink,XX_t_drive,XY_t_drive,XX,XY,XY_selections,XX_selections,XY_drive,num_hours,XX_drive)
+    hourlydrinksmale,hourlydrinksfemale,hourlydrinksdrivefemale,hourlydrinksdrivemen=hourlydrinks(event_info,XX_data,XY_data)
 
 
     #drink selection for drivers
