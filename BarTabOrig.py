@@ -150,25 +150,111 @@ def hourlydrinks(event_info,XX_data,XY_data):
     XY_selections=XY_data['male_drink_selection'].dropna()
 
     #Use randomly selected drinks per hour to extract the hourly drinks for males and females
-    hourlydrinksmale=np.exp(-0.4*XY_t_drink)*np.array(XY[XY_selections])
-    hourlydrinksfemale=np.exp(-0.4*XX_t_drink)*np.array(XX[XX_selections])
+    XY_hourlydrinks_drink=pd.DataFrame({'drinks_per_hour_drink_decay':np.exp(-0.4*XY_t_drink)*np.array(XY[XY_selections])})
+    XX_hourlydrinks_drink=pd.DataFrame({'drinks_per_hour_drink_decay':np.exp(-0.4*XX_t_drink)*np.array(XX[XX_selections])})
     
-  
-     
+    #add to total array
+    XX_data = pd.concat([XX_data, XX_hourlydrinks_drink], axis=1)
+    XY_data = pd.concat([XY_data, XY_hourlydrinks_drink], axis=1)
+    
+
     #for the people who are driving, we will assume 1 drink per hour for women and 2 in first hour
     #then 1 per hour for men
+    XY_drive=int(XY_data['drivers'].dropna())
+    XX_drive=int(XX_data['drivers'].dropna())
+    num_hours=int(event_info['num_hours'].dropna().item())
   
     hour1_drive_male=np.array([1]*XY_drive)[:,None]
     hourrest_male=np.array([[1]*(num_hours-1)]*XY_drive)
-    hourlydrinksdrivemen=np.hstack((hour1_drive_male,hourrest_male))
-    hourlydrinksdrivefemale=np.array([[1]*(num_hours)]*XX_drive)
+    XY_hourlydrinks_drive=pd.DataFrame({'drinks_per_hour_drive':np.hstack((hour1_drive_male,hourrest_male)).flatten('F')})
+    XX_hourlydrinks_drive=pd.DataFrame({'drinks_per_hour_drive':np.array([[1]*(num_hours)]*XX_drive).flatten('F')})
+    
+    #add to total array
+    XX_data = pd.concat([XX_data, XX_hourlydrinks_drive], axis=1)
+    XY_data = pd.concat([XY_data, XY_hourlydrinks_drive], axis=1)
     
   
     #add 'F' inside flatten bracket. need to add time which can be used in the decay.
-    hourlydrinksdrivefemale=np.exp(-0.4*XX_t_drive.flatten('F'))*hourlydrinksdrivefemale.flatten('F')
-    hourlydrinksdrivemen=np.exp(-0.4*XY_t_drive.flatten('F'))*hourlydrinksdrivemen.flatten('F')
+    XX_t_drive=np.array(XX_data['drivers_time'].dropna())
+    XY_t_drive=np.array(XY_data['drivers_time'].dropna())
+    
+    XX_hourlydrinks_drive=pd.DataFrame({'drinks_per_hour_drive_decay':np.exp(-0.4*XX_t_drive)*np.array(XX_data['drinks_per_hour_drive'].dropna())})
+    XY_hourlydrinks_drive=pd.DataFrame({'drinks_per_hour_drive_decay':np.exp(-0.4*XY_t_drive)*np.array(XY_data['drinks_per_hour_drive'].dropna())})
+    
+    #add to total array
+    XX_data = pd.concat([XX_data, XX_hourlydrinks_drive], axis=1)
+    XY_data = pd.concat([XY_data, XY_hourlydrinks_drive], axis=1)
+    
+  
     
     return   XX_data,XY_data
+
+def drink_price_selection(event_info,XX_data,XY_data):
+    """
+    Lets randomly select drinks and create an array
+    """
+    #Extract data from data area
+    num_hours=int(event_info['num_hours'].dropna().item())
+    drinkprice=np.array(event_info['drinkprice'].dropna()).astype(float)
+    
+    XX_drive=int(XX_data['drivers'].dropna())
+    XY_drive=int(XY_data['drivers'].dropna())
+    
+    XX_drink_select=np.array(XX_data['female_drink_selection'].dropna()).astype(int)
+    XY_drink_select=np.array(XY_data['male_drink_selection'].dropna()).astype(int)
+
+    #drink selection for drivers
+    XX_drink_selection_drive=np.random.randint(np.size(drinkprice),size=(XX_drive,num_hours)).flatten('F')
+    XY_drink_selection_drive=np.random.randint(np.size(drinkprice),size=(XY_drive,num_hours)).flatten('F')
+   
+    #random selection of drink prices for male and female
+    XY_drinks_prices_drink=pd.DataFrame({'drinks_prices_drinkers':drinkprice[XY_drink_select]})
+    XX_drinks_prices_drink=pd.DataFrame({'drinks_prices_drinkers':drinkprice[XX_drink_select]})
+    
+    #add to total array
+    XX_data = pd.concat([XX_data, XX_drinks_prices_drink], axis=1)
+    XY_data = pd.concat([XY_data, XY_drinks_prices_drink], axis=1)
+    
+    
+    XY_drinks_prices_drive=pd.DataFrame({'drinks_prices_drivers':drinkprice[XY_drink_selection_drive]})
+    XX_drinks_prices_drive=pd.DataFrame({'drinks_prices_drivers':drinkprice[XX_drink_selection_drive]})
+    
+    #add to total array
+    XX_data = pd.concat([XX_data, XX_drinks_prices_drive], axis=1)
+    XY_data = pd.concat([XY_data, XY_drinks_prices_drive], axis=1)
+    
+    return XX_data, XY_data
+
+def totalcalc(XX_data,XY_data):
+    """
+    This function takes the array of decaying time, drink selection, number of drivers to 
+    calculate the total cost
+    """
+    
+    #Extract necessary data from data frames
+    hourlydrinksmale=np.array(XY_data['drinks_per_hour_drink_decay'].dropna())
+    hourlydrinksfemale=np.array(XX_data['drinks_per_hour_drink_decay'].dropna())
+    male_drinks_prices=np.array(XY_data['drinks_prices_drinkers'].dropna())
+    female_drinks_prices=np.array(XX_data['drinks_prices_drinkers'].dropna())
+    
+     
+    hourlydrinksdrivemen=np.array(XY_data['drinks_per_hour_drive_decay'].dropna())
+    hourlydrinksdrivefemale=np.array(XX_data['drinks_per_hour_drive_decay'].dropna())
+    male_drinks_pricesd=np.array(XY_data['drinks_prices_drivers'].dropna())
+    female_drinks_pricesd=np.array(XX_data['drinks_prices_drivers'].dropna())
+    
+    #flatten arrays and mulitply by average drink price
+    total_drinks_malesnd =sum(hourlydrinksmale*male_drinks_prices)
+    total_drinks_femalesnd=sum(hourlydrinksfemale*female_drinks_prices)
+    
+    total_drinks_malesd =sum(hourlydrinksdrivemen*male_drinks_pricesd)
+    total_drinks_femalesd=sum(hourlydrinksdrivefemale*female_drinks_pricesd)
+    
+    
+    # Calculate the total cost of the bar tab
+    total_cost =total_drinks_malesnd +total_drinks_malesd + total_drinks_femalesnd + total_drinks_femalesd  
+    
+    return total_cost
 
 def drinkcalc():
     
@@ -197,47 +283,31 @@ def drinkcalc():
     XX_data,XY_data=timearrays(event_info,XX_data,XY_data)
    
     #calculate hourly drinks for drivers and drinkers including rate decay
-    hourlydrinksmale,hourlydrinksfemale,hourlydrinksdrivefemale,hourlydrinksdrivemen=hourlydrinks(event_info,XX_data,XY_data)
+    XX_data,XY_data=hourlydrinks(event_info,XX_data,XY_data)
 
-
-    #drink selection for drivers
-    female_drink_selectiond=np.random.randint(np.size(drinkprice),size=(XX_drive,num_hours))
-    male_drink_selectiond=np.random.randint(np.size(drinkprice),size=(XY_drive,num_hours))
+    XX_data, XY_data=drink_price_selection(event_info,XX_data,XY_data)
     
+    #calculate teh toal price
+    total_cost=totalcalc(XX_data,XY_data)
    
-    #random selection of drink prices for male and female
-    male_drinks_prices=drinkprice[XY_drink_select]
-    female_drinks_prices=drinkprice[XX_drink_select]
-    
-    male_drinks_pricesd=drinkprice[male_drink_selectiond]
-    female_drinks_pricesd=drinkprice[female_drink_selectiond]
-    
-    #flatten arrays and mulitply by average drink price
-    total_drinks_malesnd =sum(hourlydrinksmale*male_drinks_prices.flatten())
-    total_drinks_femalesnd=sum(hourlydrinksfemale*female_drinks_prices.flatten())
-    
-    total_drinks_malesd =sum(hourlydrinksdrivemen*male_drinks_pricesd.flatten())
-    total_drinks_femalesd=sum(hourlydrinksdrivefemale*female_drinks_pricesd.flatten())
-    
-    
-    # Calculate the total cost of the bar tab
-    total_cost =total_drinks_malesnd +total_drinks_malesd + total_drinks_femalesnd + total_drinks_femalesd  
-    
     
     # Print the total cost
     ##print("Total cost: $" + str(total_cost))
     return total_cost
 
 
+if __name__ == "__main__":
     
-totaldrinks=[]
-for i in range(1000):
-    drinks=drinkcalc()
-    totaldrinks.append(drinks)
-        
-average=np.mean(totaldrinks)
-
-print("Total cost: $" + str(average))
+    #need to add the ability to read in the information maybe from a file
+    
+    totaldrinks=[]
+    for i in range(1000):
+        drinks=drinkcalc()
+        totaldrinks.append(drinks)
+            
+    average=np.mean(totaldrinks)
+    
+    print("Total cost: $" + str(average))
 
 
 
