@@ -3,7 +3,9 @@
 """
 Created on Sat Jan 28 08:20:45 2023
 
-@author: dylanagius
+@author: Dylan Agius
+
+
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +16,7 @@ import pandas as pd
 
 
 """
-This function determines the number of cost for given information.
+This  determines the number of cost for given information.
 The drinks per hour for each gender is determine by applying a normal distribution.
 
 Things to improve:
@@ -24,21 +26,9 @@ Things to improve:
 
 class itercalc:
       
-    def __init__(self):
+    def __init__(self,data):
         
-        
-        eventdata= {'num_guests': [34], #number of guests attending
-           'percent_drive': [0.7], #fraction driving
-           'percent_female': [0.7], #fraction female
-           'num_hours': [2],#number hours for the event (note: must be in multiples of 1 hour)
-           'drinkprice':[6,7,8.50,7,15,12], # drink prices for available drinks
-           'weekday': ['yes'] #specify weekend or weekday event. This alters the drinks per hour for each distribution
-           }
-        
-        
-        data = pd.DataFrame(dict([(key, pd.Series(value)) for key, value in eventdata.items()]))
-
-            
+       
         #extract event info
         self.num_guests=int(data['num_guests'].dropna())
         self.percent_drive=float(data['percent_drive'].dropna())
@@ -54,6 +44,8 @@ class itercalc:
         self.timearrays() #create time array for decay of drinking rate as hours progress
         self.hourlydrinks() #calculate hourly drinks for drivers and drinkers including rate decay
         self.drink_price_selection()
+        
+
         
         
            
@@ -204,6 +196,7 @@ if __name__ == "__main__":
     
     totaldrinks=[]
     for i in range(1000):
+        
         drinks=itercalc().totalcalc()
         totaldrinks.append(drinks)
             
