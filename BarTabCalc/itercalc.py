@@ -34,7 +34,7 @@ class itercalc:
         self.percent_drive=float(data['percent_drive'].dropna())
         self.num_hours=int(data['num_hours'].dropna())
         self.drinkprice=np.array(data['drinkprice'])
-        self.weekday=data['weekday'].dropna().item()
+        self.weekday=data['school_night'].dropna().item()
         self.percent_female=float(data['percent_female'].dropna())
         
         self.formdist()
