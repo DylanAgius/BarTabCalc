@@ -1,9 +1,9 @@
 #  :beer: BarTabCalc :cocktail:
-An app to calculate the approximate bar tab required for an event.
+This tool takes the guess work out of arriving at the perfect amount needed to balance your finances while ensuring everyone at your event is satisfied. Given some important information, it will tell you how much you should be aiming to put on the tab at the bar for your event.
 
 ## Important details.
 The drinks per hour for each men and women are determined by sampling normal distributions. These distributions assume men will drink more per hour than women. For both men and women, the minimum drink per hour is 0 but the maximum for men is 5 while the maximum for women is 3. These values are used for weekends.  For "school night" events, the maximum values are locked in as 3 and 2 for men and women respectively. This alters the standard deviation but I have left the mean the same for both. The  details of distribution are the following:
-|  empty | Mean | Standard deviation| Standard deviation ("school night")|
+|   | Mean | Standard deviation| Standard deviation ("school night")|
 |--------|------|--------------------|-----------------------------------|
 |Men     | 2    |                5/4 |                              3/4  |
 |Women   | 1    |                3/4 |                               3/4 |
@@ -32,7 +32,6 @@ You will then be prompted to provide event information for the calculation.
 
 The other usage is with [Marimo](https://github.com/marimo-team/marimo.git).
 This code has been developed to be used with Marimo, allowing a seamless deployable app which you can use. 
-
 
 
 ## :dart: Accuracy

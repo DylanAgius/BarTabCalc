@@ -17,7 +17,7 @@ eventdata= {'num_guests': [int(input('Numer of guests: '))], #number of guests a
    'percent_female': [float(input('Percent expected to be female: '))/100], #fraction female
    'num_hours': [int(input('Number of hours you would like to tab to last: '))],#number hours for the event (note: must be in multiples of 1 hour)
    'drinkprice':[float(e) for e in input('Drink prices (separated by a comma): ').split(",")], # drink prices for available drinks
-   'school_night': [input('Is this a "school night" event (yes/no):' )] #specify weekend or weekday event. This alters the drinks per hour for each distribution
+   'schoolnight': [input('Is this a "school night" event (yes/no):' )] #specify weekend or weekday event. This alters the drinks per hour for each distribution
    }
 
 
