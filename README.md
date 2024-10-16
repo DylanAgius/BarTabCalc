@@ -40,6 +40,9 @@ If you do use this tool, please let me know the results of the simulation and th
 |  Event    | Prediction | Actual   |
 |-----------|------------|----------|
 |Baby shower| $560       | $575     |
+|Wedding recovery| $1419| |
+|Wedding reception| $1712| |
+|Wedding after party | $1033| |
 
 
 
